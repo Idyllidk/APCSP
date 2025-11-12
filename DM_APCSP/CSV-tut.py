@@ -1,32 +1,35 @@
-#Import all necessary libraries - PD, PLT, and NP
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-#Create our dataframe using our csv
-data = pd.read_csv(r"DM_APCSP\apcspb3.csv")
-
-
+data = pd.read_csv(r"DM_APCSP\NewJollySurvey.csv")
 df = pd.DataFrame(data)
 
-print("-_"*40)
-print("Head of the Data Frame:")
 print(df.head())
-
-print("-_"*40)
-print("Tail of the Data Frame:")
 print(df.tail())
-
-print("-_"*40)
-print("Information about the Data Frame:")
 print(df.info())
-
-print("-_"*40)
-print(round(df.describe(),1))
-
-print("-_"*40)
-print("Pie Value Counts")
+'''print(round(df.describe(),1))
 print(df['PIE'].value_counts())
+print(df.groupby('PIE')['NAP'].mean())'''
 
-print("-_"*40)
-print(df.groupby('PIE')['NAP'].mean())
+df['JOLLY'].value_counts().plot(kind='pie')
+
+plt.title("Jolly-ness of People")
+plt.xlabel("Jolly-ness")
+plt.ylabel("Number of Responses")
+#plt.xticks(rotation=45)
+plt.tight_layout()
+
+plt.show()
+
+
+
+plt.scatter(df['JOLLY'], df['BELIEF'])
+
+plt.title("Jolly-ness in relation to Belief")
+plt.xlabel("Jolly-ness")
+plt.ylabel("Belief")
+plt.xticks(rotation=45)
+plt.tight_layout()
+
+plt.show()
