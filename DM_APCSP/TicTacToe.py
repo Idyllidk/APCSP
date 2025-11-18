@@ -8,6 +8,9 @@ Screen.bgcolor((1,1,1))
 
 GS.speed(0)
 GS.ht()
+GS.width(4)
+
+AmountOfSquare = 5
 
 def MainDraw(From, Amount):
     GS.penup()
@@ -16,12 +19,22 @@ def MainDraw(From, Amount):
     GS.forward(Amount)
     GS.penup()
 
+def MainDrawTo(From, To):
+    GS.penup()
+    GS.setpos(From[0], From[1])
+    GS.pendown()
+    GS.setpos(To[0], To[1])
+    GS.penup()
+
 def InitializeBoard():
-    MainDraw((-150,50), 300)
-    MainDraw((-150,-50), 300)
-    GS.seth(-90)
-    MainDraw((50,150), 300)
-    MainDraw((-50,150), 300)
+    global Drawing
+    Drawing = True
+    for i in range(AmountOfSquare-1):
+        MainDrawTo((-150-(75*(AmountOfSquare-3))+(150*0),-100-(50*(AmountOfSquare-3))+(100*i)+50), (-150-(75*(AmountOfSquare-3))+(150*(AmountOfSquare-1)),-100-(50*(AmountOfSquare-3))+(100*i)+50))
+        #MainDrawTo((-150,-50), (150,-50))
+        #MainDrawTo((50,150), (50,-150))
+        #MainDrawTo((-50,150), (-50,-150))
+    Drawing = False
 
 
 InitializeBoard()
@@ -31,6 +44,7 @@ CO.speed(0)
 CO.penup()
 CO.seth(90)
 CO.shape('square')
+CO.width(4)
 
 Drawing = False
 
@@ -43,6 +57,12 @@ CurrentTileY = 1
 
 OccupiedSpots = []
 
+def DrawTextWinner(Winner):
+    GS.penup()
+    GS.teleport(0, 200)
+    GS.pendown()
+    GS.write(F"{Winner} has Won!", align="center" ,font=("Arial", 40, "bold"))
+
 def DrawCross(Position):
     global OccupiedSpots
     global CurrentTileX
@@ -50,18 +70,18 @@ def DrawCross(Position):
     global Player
     if not (CurrentTileX,CurrentTileY) in OccupiedSpots:
         OccupiedSpots.append({"Pos":(CurrentTileX,CurrentTileY), "Owner": "X"})
-        print(True)
+        #print(True)
         global Drawing
         Drawing = True
-        CO.setpos(Position[0]-50, Position[1]-50)
+        CO.setpos(Position[0]-48, Position[1]-48)
         CO.seth(45)
         CO.pendown()
-        CO.forward(141.421)
+        CO.setpos(Position[0]+48, Position[1]+48)
         CO.penup()
-        CO.setpos(Position[0]-50, Position[1]+50)
+        CO.setpos(Position[0]-48, Position[1]+48)
         CO.seth(-45)
         CO.pendown()
-        CO.forward(141.421)
+        CO.setpos(Position[0]+48, Position[1]-48)
         CO.penup()
         CO.seth(90)
         Player = 2
@@ -74,13 +94,13 @@ def DrawCircle(Position):
     global Player
     if not (CurrentTileX,CurrentTileY) in OccupiedSpots:
         OccupiedSpots.append({"Pos":(CurrentTileX,CurrentTileY), "Owner": "O"})
-        print(True)
+        #print(True)
         global Drawing
         Drawing = True
-        CO.setpos(Position[0], Position[1]-50)
+        CO.setpos(Position[0], Position[1]-48)
         CO.seth(0)
         CO.pendown()
-        CO.circle(50)
+        CO.circle(48)
         CO.penup()
         CO.seth(90)
         Player = 1
@@ -105,19 +125,12 @@ def CheckDia():
         if i["Pos"] == (0, 2):
             Check3R = i["Owner"]
     if Check1L == Check2L and Check2L == Check3L:
-        print(Check1L)
+        return Check1L
     elif Check1R == Check2L and Check2L == Check3R:
-        print(Check1R)
+        return Check1R
+    #for i in range
 
-def is_descendant(item, nested_list):
-    for element in nested_list:
-        if element == item:
-            return True
-        elif isinstance(element, list) and is_descendant(item, element):
-            return True
-    return False
-
-def CheckAcross():
+def CheckAcross(Type):
     global OccupiedSpots
     Check = [
         {
@@ -139,16 +152,16 @@ def CheckAcross():
     for i in OccupiedSpots:
         for k in range(3):
             for j in range(3):
-                if f"({k}, {j})" == str(i["Pos"]):
-                    Check[k][str(j)] = i["Owner"]
+                if Type == "Vertical":
+                    if f"({k}, {j})" == str(i["Pos"]):
+                        Check[k][str(j)] = i["Owner"]
+                elif Type == "Horizontal":
+                    if f"({j}, {k})" == str(i["Pos"]):
+                        Check[k][str(j)] = i["Owner"]
     
     for i in Check:
         if i["0"] == i["1"] and i["1"] == i["2"]:
-            print("Vert")
-    '''if Check1L == Check2L and Check2L == Check3L:
-        print(Check1L)
-    elif Check1R == Check2L and Check2L == Check3R:
-        print(Check1R)'''
+            return i["0"]
 
 
 def Loop():
@@ -157,7 +170,7 @@ def Loop():
     global CurrentTileY
     global OccupiedSpots
     if Drawing == False:
-        CO.setpos(-100+(100*CurrentTileX),-100+(100*CurrentTileY))
+        CO.setpos(-100-(50*(AmountOfSquare-3))+(100*CurrentTileX),-100-(50*(AmountOfSquare-3))+(100*CurrentTileY))
 
     if Player == 1:
         CO.shape('square')
@@ -168,15 +181,28 @@ def Loop():
         Screen.update()
 
     #print(OccupiedSpots)
-    CheckDia()
-    CheckAcross()
-    
+    Winner = None
+    TempDia = CheckDia()
+    TempVert = CheckAcross("Vertical")
+    TempHoriz = CheckAcross("Horizontal")
+    if TempDia != None:
+        Winner = TempDia
+    if TempVert != None:
+        Winner = TempVert
+    if TempHoriz != None:
+        Winner = TempHoriz
+
+    if Winner != None:
+        Drawing = False
+        DrawTextWinner(Winner)
+
 
     Screen.ontimer(Loop, 10)
 
 def moveRight():
     global CurrentTileX
-    if CurrentTileX < 2:
+    global AmountOfSquare
+    if CurrentTileX < AmountOfSquare-1:
         CurrentTileX += 1
 
 def moveLeft():
@@ -186,7 +212,8 @@ def moveLeft():
 
 def moveUp():
     global CurrentTileY
-    if CurrentTileY < 2:
+    global AmountOfSquare
+    if CurrentTileY < AmountOfSquare-1:
         CurrentTileY += 1
 
 def moveDown():
@@ -196,10 +223,27 @@ def moveDown():
 
 def SelectPos():
     global Player
-    if Player == 1:
-        DrawCross((-100+(100*CurrentTileX),-100+(100*CurrentTileY)))
-    else:
-        DrawCircle((-100+(100*CurrentTileX),-100+(100*CurrentTileY)))
+    global OccupiedSpots
+    check = False
+    for i in OccupiedSpots:
+        #print(i["Pos"])
+        if f"({CurrentTileX}, {CurrentTileY})" == str(i["Pos"]):
+            check = True
+
+    if check == False:
+        if Player == 1:
+            DrawCross((-100-(50*(AmountOfSquare-3))+(100*CurrentTileX),-100-(50*(AmountOfSquare-3))+(100*CurrentTileY)))
+        else:
+            DrawCircle((-100-(50*(AmountOfSquare-3))+(100*CurrentTileX),-100-(50*(AmountOfSquare-3))+(100*CurrentTileY)))
+
+def ResetBoard():
+    global OccupiedSpots
+    global Player
+    OccupiedSpots = []
+    Player = 1
+    GS.clear()
+    CO.clear()
+    InitializeBoard()
 
 
 Screen.onkeypress(moveRight, "d")
@@ -208,6 +252,8 @@ Screen.onkeypress(moveUp, "w")
 Screen.onkeypress(moveDown, "s")
 
 Screen.onkeypress(SelectPos, "Return")
+
+Screen.onkeypress(ResetBoard, "r")
 
 Screen.listen()
 Loop()
