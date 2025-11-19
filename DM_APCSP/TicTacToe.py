@@ -10,7 +10,16 @@ GS.speed(0)
 GS.ht()
 GS.width(4)
 
-AmountOfSquare = 3
+AmountOfSquare = 5
+Score = {
+    "X": 0,
+    "O": 0
+}
+
+SB = turtle.Turtle()
+SB.hideturtle()
+SB.speed(0)
+SB.penup()
 #RECOMMENDED MAXIMUM IS 7 IN FULL SCREEN MODE
 #DO NOT GO OVER 7 UNLESS YOU REALLY WANT TO
 
@@ -75,6 +84,19 @@ def DrawTextWinner(Winner):
     GS.teleport(0, 200+(50*(AmountOfSquare-3)))
     GS.pendown()
     GS.write(F"{Winner} has Won!", align="center" ,font=("Verdana", 40, "bold"))
+
+def DrawTextScore():
+    global Score
+    SB.clear()
+    SB.penup()
+    SB.teleport(-150, 150+(50*(AmountOfSquare-3)))
+    SB.pendown()
+    SB.write(F"X: {Score['X']}", align="left" ,font=("Verdana", 32, "bold"))
+    SB.penup()
+    SB.teleport(150, 150+(50*(AmountOfSquare-3)))
+    SB.pendown()
+    SB.write(F"O: {Score['O']}", align="right" ,font=("Verdana", 32, "bold"))
+DrawTextScore()
 
 def DrawCross(Position):
     global OccupiedSpots
@@ -190,6 +212,7 @@ def Loop():
     global CurrentTileY
     global OccupiedSpots
     global Won
+    global SB
     if Drawing == False:
         CO.setpos(-100-(50*(AmountOfSquare-3))+(100*CurrentTileX),-100-(50*(AmountOfSquare-3))+(100*CurrentTileY))
 
@@ -216,9 +239,11 @@ def Loop():
             Winner = TempHoriz
 
     #print(Winner)
-    if Winner != None:
-        #Won = True
+    if Winner != None and Won == False:
+        Won = True
         Drawing = False
+        Score[Winner] += 1
+        DrawTextScore()
         DrawTextWinner(Winner)
 
 
@@ -262,6 +287,9 @@ def SelectPos():
             DrawCircle((-100-(50*(AmountOfSquare-3))+(100*CurrentTileX),-100-(50*(AmountOfSquare-3))+(100*CurrentTileY)))
 
 def ResetBoard():
+    global GS
+    global CO
+    global SB
     global Won
     global OccupiedSpots
     global Player
@@ -269,6 +297,8 @@ def ResetBoard():
     Player = 1
     GS.clear()
     CO.clear()
+    SB.clear()
+    DrawTextScore()
     InitializeBoard()
     Won = False
 
