@@ -10,7 +10,7 @@ GS.speed(0)
 GS.ht()
 GS.width(4)
 
-AmountOfSquare = 5
+AmountOfSquare = 3
 
 def MainDraw(From, Amount):
     GS.penup()
@@ -30,10 +30,8 @@ def InitializeBoard():
     global Drawing
     Drawing = True
     for i in range(AmountOfSquare-1):
-        MainDrawTo((-150-(75*(AmountOfSquare-3))+(150*0),-100-(50*(AmountOfSquare-3))+(100*i)+50), (-150-(75*(AmountOfSquare-3))+(150*(AmountOfSquare-1)),-100-(50*(AmountOfSquare-3))+(100*i)+50))
-        #MainDrawTo((-150,-50), (150,-50))
-        #MainDrawTo((50,150), (50,-150))
-        #MainDrawTo((-50,150), (-50,-150))
+        MainDrawTo((-150-(50*(AmountOfSquare-3))+(150*0),-100-(50*(AmountOfSquare-3))+(100*i)+50), (-150-(100*(AmountOfSquare-3))+(150*(AmountOfSquare-1)),-100-(50*(AmountOfSquare-3))+(100*i)+50))
+        MainDrawTo((-100-(50*(AmountOfSquare-3))+(100*i)+50, -150-(50*(AmountOfSquare-3))+(150*0)), ((-100-(50*(AmountOfSquare-3))+(100*i)+50), (-150-(100*(AmountOfSquare-3))+(150*(AmountOfSquare-1)))))
     Drawing = False
 
 
@@ -51,15 +49,24 @@ Drawing = False
 PlayerMode = "Player"
 Player = 1
 
-CurrentTileX = 1
-CurrentTileY = 1
+CurrentTileX = 0
+CurrentTileY = 0
+
+if AmountOfSquare == 1:
+    CurrentTileX, CurrentTileY = 0, 0
+elif not AmountOfSquare % 2 == 0:
+    CurrentTileX, CurrentTileY = (AmountOfSquare-1)/2, (AmountOfSquare-1)/2
+else:
+    CurrentTileX, CurrentTileY = 0, AmountOfSquare-1
+
+Won = False
 
 
 OccupiedSpots = []
 
 def DrawTextWinner(Winner):
     GS.penup()
-    GS.teleport(0, 200)
+    GS.teleport(0, 200+(50*(AmountOfSquare-3)))
     GS.pendown()
     GS.write(F"{Winner} has Won!", align="center" ,font=("Arial", 40, "bold"))
 
@@ -108,60 +115,66 @@ def DrawCircle(Position):
 
 def CheckDia():
     global OccupiedSpots
-    Check1L = "1"
-    Check2L = "2"
-    Check3L = "3"
-    Check1R = "4"
-    Check3R = "5"
-    for i in OccupiedSpots:
-        if i["Pos"] == (0, 0):
-            Check1L = i["Owner"]
-        if i["Pos"] == (1, 1):
-            Check2L = i["Owner"]
-        if i["Pos"] == (2, 2):
-            Check3L = i["Owner"]
-        if i["Pos"] == (2, 0):
-            Check1R = i["Owner"]
-        if i["Pos"] == (0, 2):
-            Check3R = i["Owner"]
-    if Check1L == Check2L and Check2L == Check3L:
-        return Check1L
-    elif Check1R == Check2L and Check2L == Check3R:
-        return Check1R
-    #for i in range
+    global AmountOfSquare
+    Check = []
+
+    for k in range(2):
+        TempCheck = {}
+        
+        for j in range(AmountOfSquare):
+            target_pos = ""
+            if k == 0:
+                target_pos = f"({j}, {j})"
+            else:
+                target_pos = f"({AmountOfSquare - 1 - j}, {j})"
+
+            for i in OccupiedSpots:
+                if str(i["Pos"]) == target_pos:
+                    TempCheck[str(j)] = i["Owner"]
+
+        if TempCheck:
+            Check.append(TempCheck)
+
+    for row_data in Check:
+        if len(row_data) == AmountOfSquare:
+            owners = list(row_data.values())
+            first_owner = owners[0]
+            if all(owner == first_owner for owner in owners):
+                return first_owner
+
+    return None
 
 def CheckAcross(Type):
     global OccupiedSpots
-    Check = [
-        {
-            "0": "0",
-            "1": "1",
-            "2": "2"
-        },
-        {
-            "0": "0",
-            "1": "1",
-            "2": "2"
-        },
-        {
-            "0": "0",
-            "1": "1",
-            "2": "2"
-        }
-    ]
-    for i in OccupiedSpots:
-        for k in range(3):
-            for j in range(3):
-                if Type == "Vertical":
-                    if f"({k}, {j})" == str(i["Pos"]):
-                        Check[k][str(j)] = i["Owner"]
-                elif Type == "Horizontal":
-                    if f"({j}, {k})" == str(i["Pos"]):
-                        Check[k][str(j)] = i["Owner"]
-    
-    for i in Check:
-        if i["0"] == i["1"] and i["1"] == i["2"]:
-            return i["0"]
+    global AmountOfSquare
+    Check = []
+
+    for k in range(AmountOfSquare):
+        TempCheck = {}
+        
+        for j in range(AmountOfSquare):
+            target_pos = ""
+            if Type == "Vertical":
+                target_pos = f"({k}, {j})"
+            elif Type == "Horizontal":
+                target_pos = f"({j}, {k})"
+
+            for i in OccupiedSpots:
+                if str(i["Pos"]) == target_pos:
+                    TempCheck[str(j)] = i["Owner"]
+
+        if TempCheck:
+            Check.append(TempCheck)
+
+    for row_data in Check:
+        if len(row_data) == AmountOfSquare:
+            owners = list(row_data.values())
+            
+            first_owner = owners[0]
+            if all(owner == first_owner for owner in owners):
+                return first_owner
+
+    return None
 
 
 def Loop():
@@ -169,6 +182,7 @@ def Loop():
     global CurrentTileX
     global CurrentTileY
     global OccupiedSpots
+    global Won
     if Drawing == False:
         CO.setpos(-100-(50*(AmountOfSquare-3))+(100*CurrentTileX),-100-(50*(AmountOfSquare-3))+(100*CurrentTileY))
 
@@ -182,17 +196,20 @@ def Loop():
 
     #print(OccupiedSpots)
     Winner = None
-    TempDia = CheckDia()
-    TempVert = CheckAcross("Vertical")
-    TempHoriz = CheckAcross("Horizontal")
-    if TempDia != None:
-        Winner = TempDia
-    if TempVert != None:
-        Winner = TempVert
-    if TempHoriz != None:
-        Winner = TempHoriz
+
+    if Won == False:
+        TempDia = CheckDia()
+        TempVert = CheckAcross("Vertical")
+        TempHoriz = CheckAcross("Horizontal")
+        if TempDia != None:
+            Winner = TempDia
+        if TempVert != None:
+            Winner = TempVert
+        if TempHoriz != None:
+            Winner = TempHoriz
 
     if Winner != None:
+        Won = True
         Drawing = False
         DrawTextWinner(Winner)
 
@@ -237,6 +254,7 @@ def SelectPos():
             DrawCircle((-100-(50*(AmountOfSquare-3))+(100*CurrentTileX),-100-(50*(AmountOfSquare-3))+(100*CurrentTileY)))
 
 def ResetBoard():
+    global Won
     global OccupiedSpots
     global Player
     OccupiedSpots = []
@@ -244,6 +262,7 @@ def ResetBoard():
     GS.clear()
     CO.clear()
     InitializeBoard()
+    Won = False
 
 
 Screen.onkeypress(moveRight, "d")
