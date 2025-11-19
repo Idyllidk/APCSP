@@ -11,6 +11,8 @@ GS.ht()
 GS.width(4)
 
 AmountOfSquare = 3
+#RECOMMENDED MAXIMUM IS 7 IN FULL SCREEN MODE
+#DO NOT GO OVER 7 UNLESS YOU REALLY WANT TO
 
 def MainDraw(From, Amount):
     GS.penup()
@@ -52,12 +54,16 @@ Player = 1
 CurrentTileX = 0
 CurrentTileY = 0
 
+SizeOffset = -10
+
 if AmountOfSquare == 1:
     CurrentTileX, CurrentTileY = 0, 0
-elif not AmountOfSquare % 2 == 0:
-    CurrentTileX, CurrentTileY = (AmountOfSquare-1)/2, (AmountOfSquare-1)/2
+elif AmountOfSquare % 2 != 0:
+    CurrentTileX, CurrentTileY = (AmountOfSquare-1)//2, (AmountOfSquare-1)//2
 else:
     CurrentTileX, CurrentTileY = 0, AmountOfSquare-1
+
+print(CurrentTileX, CurrentTileY)
 
 Won = False
 
@@ -68,7 +74,7 @@ def DrawTextWinner(Winner):
     GS.penup()
     GS.teleport(0, 200+(50*(AmountOfSquare-3)))
     GS.pendown()
-    GS.write(F"{Winner} has Won!", align="center" ,font=("Arial", 40, "bold"))
+    GS.write(F"{Winner} has Won!", align="center" ,font=("Verdana", 40, "bold"))
 
 def DrawCross(Position):
     global OccupiedSpots
@@ -80,15 +86,15 @@ def DrawCross(Position):
         #print(True)
         global Drawing
         Drawing = True
-        CO.setpos(Position[0]-48, Position[1]-48)
+        CO.setpos(Position[0]-(50+SizeOffset), Position[1]-(50+SizeOffset))
         CO.seth(45)
         CO.pendown()
-        CO.setpos(Position[0]+48, Position[1]+48)
+        CO.setpos(Position[0]+(50+SizeOffset), Position[1]+(50+SizeOffset))
         CO.penup()
-        CO.setpos(Position[0]-48, Position[1]+48)
+        CO.setpos(Position[0]-(50+SizeOffset), Position[1]+(50+SizeOffset))
         CO.seth(-45)
         CO.pendown()
-        CO.setpos(Position[0]+48, Position[1]-48)
+        CO.setpos(Position[0]+(50+SizeOffset), Position[1]-(50+SizeOffset))
         CO.penup()
         CO.seth(90)
         Player = 2
@@ -99,15 +105,16 @@ def DrawCircle(Position):
     global CurrentTileX
     global CurrentTileY
     global Player
+    global SizeOffset
     if not (CurrentTileX,CurrentTileY) in OccupiedSpots:
         OccupiedSpots.append({"Pos":(CurrentTileX,CurrentTileY), "Owner": "O"})
         #print(True)
         global Drawing
         Drawing = True
-        CO.setpos(Position[0], Position[1]-48)
+        CO.setpos(Position[0], Position[1]-(50+SizeOffset))
         CO.seth(0)
         CO.pendown()
-        CO.circle(48)
+        CO.circle(50+SizeOffset)
         CO.penup()
         CO.seth(90)
         Player = 1
@@ -208,8 +215,9 @@ def Loop():
         if TempHoriz != None:
             Winner = TempHoriz
 
+    #print(Winner)
     if Winner != None:
-        Won = True
+        #Won = True
         Drawing = False
         DrawTextWinner(Winner)
 
