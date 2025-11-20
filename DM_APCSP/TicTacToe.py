@@ -11,7 +11,17 @@ GS.speed(0)
 GS.ht()
 GS.width(4)
 
-AmountOfSquare = 4
+AmountOfSquare = 3  #Change this number to change the size of the Tic Tac Toe board. Recommended max is 7.
+
+#There are TWO player modes; Computer or Player.
+PlayerMode = "Computer"
+Player = 1
+
+#If PlayerMode is set to Computer, the computer will play as O, There are 2 modes for the computer: "Random" and "Smart"
+#If you want to feel good about yourself, you should probably pick "Random"
+#Warning: "Smart" mode isn't completely smart and will replicate losses if you repeat the same moves.
+ComputerMode = "Smart"
+
 Score = {
     "X": 0,
     "O": 0
@@ -57,15 +67,6 @@ CO.shape('square')
 CO.width(4)
 
 Drawing = False
-
-#There are TWO player modes; Computer or Player.
-PlayerMode = "Computer"
-Player = 1
-
-#If PlayerMode is set to Computer, the computer will play as O, There are 2 modes for the computer: "Random" and "Smart"
-#If you want to feel good about yourself, you should probably pick "Random"
-#Warning: "Smart" mode isn't completely smart and will replicate losses if you repeat the same moves.
-ComputerMode = "Random"
 
 CurrentTileX = 0
 CurrentTileY = 0
@@ -341,7 +342,7 @@ def Loop():
     if Player == 1:
         CO.shape('square')
     if Player == 2:
-        CO.shape('triangle')
+        CO.shape('circle')
 
     if Drawing == False:
         Screen.update()
