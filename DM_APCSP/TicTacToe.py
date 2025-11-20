@@ -1,4 +1,5 @@
 import turtle
+import random
 
 GS = turtle.Turtle()
 Screen = GS.screen
@@ -10,7 +11,7 @@ GS.speed(0)
 GS.ht()
 GS.width(4)
 
-AmountOfSquare = 5
+AmountOfSquare = 4
 Score = {
     "X": 0,
     "O": 0
@@ -57,8 +58,14 @@ CO.width(4)
 
 Drawing = False
 
-PlayerMode = "Player"
+#There are TWO player modes; Computer or Player.
+PlayerMode = "Computer"
 Player = 1
+
+#If PlayerMode is set to Computer, the computer will play as O, There are 2 modes for the computer: "Random" and "Smart"
+#If you want to feel good about yourself, you should probably pick "Random"
+#Warning: "Smart" mode isn't completely smart and will replicate losses if you repeat the same moves.
+ComputerMode = "Random"
 
 CurrentTileX = 0
 CurrentTileY = 0
@@ -103,6 +110,8 @@ def DrawCross(Position):
     global CurrentTileX
     global CurrentTileY
     global Player
+    #print(CurrentTileX, CurrentTileY)
+    #print(OccupiedSpots)
     if not (CurrentTileX,CurrentTileY) in OccupiedSpots:
         OccupiedSpots.append({"Pos":(CurrentTileX,CurrentTileY), "Owner": "X"})
         #print(True)
@@ -134,6 +143,24 @@ def DrawCircle(Position):
         global Drawing
         Drawing = True
         CO.setpos(Position[0], Position[1]-(50+SizeOffset))
+        CO.seth(0)
+        CO.pendown()
+        CO.circle(50+SizeOffset)
+        CO.penup()
+        CO.seth(90)
+        Player = 1
+        Drawing = False
+
+def DrawCircleManual(Position):
+    global OccupiedSpots
+    global Player
+    global SizeOffset
+    if not (Position[0],Position[1]) in OccupiedSpots:
+        OccupiedSpots.append({"Pos":(Position[0],Position[1]), "Owner": "O"})
+        #print(True)
+        global Drawing
+        Drawing = True
+        CO.setpos((-100-(50*(AmountOfSquare-3))+(100*Position[0]),-100-(50*(AmountOfSquare-3))+(100*Position[1])-(50+SizeOffset)))
         CO.seth(0)
         CO.pendown()
         CO.circle(50+SizeOffset)
@@ -205,6 +232,101 @@ def CheckAcross(Type):
 
     return None
 
+#EVERYTHING FROM HERE ON UNTIL THE END OF THE "ChooseAIMove" FUNCTION IS THE SMARTER AI CODE FOR COMPUTER PLAYER, EVERYTHING ELSE IS MINE AND WAS WRITTEN BEFOREHAND
+def get_owner(x, y):
+    for i in OccupiedSpots:
+        if i["Pos"] == (x, y):
+            return i["Owner"]
+    return None
+
+def find_winning_move(owner):
+    # check rows
+    for r in range(AmountOfSquare):
+        count_owner = 0
+        empty = None
+        for c in range(AmountOfSquare):
+            o = get_owner(c, r)
+            if o == owner:
+                count_owner += 1
+            elif o is None:
+                empty = (c, r)
+        if count_owner == AmountOfSquare - 1 and empty is not None:
+            return empty
+
+    # check columns
+    for c in range(AmountOfSquare):
+        count_owner = 0
+        empty = None
+        for r in range(AmountOfSquare):
+            o = get_owner(c, r)
+            if o == owner:
+                count_owner += 1
+            elif o is None:
+                empty = (c, r)
+        if count_owner == AmountOfSquare - 1 and empty is not None:
+            return empty
+
+    # main diagonal
+    count_owner = 0
+    empty = None
+    for i in range(AmountOfSquare):
+        o = get_owner(i, i)
+        if o == owner:
+            count_owner += 1
+        elif o is None:
+            empty = (i, i)
+    if count_owner == AmountOfSquare - 1 and empty is not None:
+        return empty
+
+    # anti-diagonal
+    count_owner = 0
+    empty = None
+    for i in range(AmountOfSquare):
+        o = get_owner(AmountOfSquare - 1 - i, i)
+        if o == owner:
+            count_owner += 1
+        elif o is None:
+            empty = (AmountOfSquare - 1 - i, i)
+    if count_owner == AmountOfSquare - 1 and empty is not None:
+        return empty
+
+    return None
+
+def ChooseAIMove():
+    # 1) Win if possible
+    move = find_winning_move("O")
+    if move:
+        return move
+
+    # 2) Block opponent win
+    move = find_winning_move("X")
+    if move:
+        return move
+
+    # 3) Take center if available (for odd board)
+    if AmountOfSquare % 2 == 1:
+        center = ((AmountOfSquare - 1) // 2, (AmountOfSquare - 1) // 2)
+        if get_owner(*center) is None:
+            return center
+
+    # 4) Take a corner if available
+    corners = [(0, 0), (AmountOfSquare - 1, 0), (0, AmountOfSquare - 1), (AmountOfSquare - 1, AmountOfSquare - 1)]
+    available_corners = [c for c in corners if get_owner(*c) is None]
+    if available_corners:
+        return random.choice(available_corners)
+
+    # 5) Otherwise pick any random empty cell
+    empties = []
+    for x in range(AmountOfSquare):
+        for y in range(AmountOfSquare):
+            if get_owner(x, y) is None:
+                empties.append((x, y))
+    if empties:
+        return random.choice(empties)
+
+    return None
+
+#I have read through the AI generated code, and I do understand what it all means and how to replicate it if needed.
 
 def Loop():
     global Drawing
@@ -245,6 +367,38 @@ def Loop():
         Score[Winner] += 1
         DrawTextScore()
         DrawTextWinner(Winner)
+    
+    '''if PlayerMode == "Computer" and Player == 2:
+        Xchosen = random.randint(0, AmountOfSquare-1)
+        Ychosen = random.randint(0, AmountOfSquare-1)
+        #print(OccupiedSpots)
+        check = False
+        for i in OccupiedSpots:
+            if f"({Xchosen}, {Ychosen})" == str(i["Pos"]):
+                check = True
+
+        if check == False:
+            DrawCircleManual((Xchosen, Ychosen))'''
+    
+    if PlayerMode == "Computer" and Player == 2:
+        # smarter AI:
+        if ComputerMode == "Random":
+            Xchosen = random.randint(0, AmountOfSquare-1)
+            Ychosen = random.randint(0, AmountOfSquare-1)
+            #print(OccupiedSpots)
+            check = False
+            for i in OccupiedSpots:
+                if f"({Xchosen}, {Ychosen})" == str(i["Pos"]):
+                    check = True
+
+            if check == False:
+                DrawCircleManual((Xchosen, Ychosen))
+        elif ComputerMode == "Smart":
+            move = ChooseAIMove()
+            if move is not None:
+                # move is (x_index, y_index)
+                DrawCircleManual(move)
+
 
 
     Screen.ontimer(Loop, 10)
@@ -283,10 +437,11 @@ def SelectPos():
     if check == False:
         if Player == 1:
             DrawCross((-100-(50*(AmountOfSquare-3))+(100*CurrentTileX),-100-(50*(AmountOfSquare-3))+(100*CurrentTileY)))
-        else:
+        elif PlayerMode == "Player":
             DrawCircle((-100-(50*(AmountOfSquare-3))+(100*CurrentTileX),-100-(50*(AmountOfSquare-3))+(100*CurrentTileY)))
 
 def ResetBoard():
+    print("")
     global GS
     global CO
     global SB
