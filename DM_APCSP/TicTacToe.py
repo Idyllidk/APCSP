@@ -12,7 +12,7 @@ GS.ht()
 GS.width(4)
 
 AmountOfSquare = 3  #Change this number to change the size of the Tic Tac Toe board. Recommended max is 7.
-
+ManualSetupMode = False
 #There are TWO player modes; Computer or Player.
 PlayerMode = "Computer"
 Player = 1
@@ -56,6 +56,32 @@ def InitializeBoard():
         MainDrawTo((-100-(50*(AmountOfSquare-3))+(100*i)+50, -150-(50*(AmountOfSquare-3))+(150*0)), ((-100-(50*(AmountOfSquare-3))+(100*i)+50), (-150-(100*(AmountOfSquare-3))+(150*(AmountOfSquare-1)))))
     Drawing = False
 
+def DrawTextGeneral(Text, OverrideSquare):
+    TempSquare = AmountOfSquare
+    if OverrideSquare == True:
+        TempSquare = 3
+    GS.clear()
+    GS.penup()
+    GS.teleport(0, 225+(50*(TempSquare-3)))
+    GS.pendown()
+    GS.write(F"{Text}", align="center" ,font=("Verdana", 20, "bold"))
+
+if ManualSetupMode == True:
+    DrawTextGeneral('Grid Size (Only write One Number like "7")', True)
+    AmountOfSquare = int(Screen.numinput("Grid Size", "How large do you want the grid to be? (Recommended max: 7)"))
+    DrawTextGeneral("How many players? (1 or 2)", True)
+    TempPM = int(Screen.numinput("Players", "How many players are playing? (1 or 2)"))
+    if TempPM == 1:
+        PlayerMode = "Computer"
+        DrawTextGeneral("CPU Difficulty (Random or Smart)", True)
+        TempCD = Screen.textinput("Difficulty", "CPU Diffuclty (Random or Smart)")
+        if TempCD == "Random":
+            ComputerMode = "Random"
+        else:
+            ComputerMode = "Smart"
+    else:
+        PlayerMode = "Player"
+    GS.clear()
 
 InitializeBoard()
 
